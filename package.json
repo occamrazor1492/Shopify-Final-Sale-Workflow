@@ -5,6 +5,7 @@
   "description": "Netlify-ready web app for generating final-sale Shopify CSV outputs.",
   "main": "server.js",
   "scripts": {
+    "build:functions": "node scripts/build-functions.cjs",
     "start": "node server.js",
     "dev": "node --watch server.js",
     "netlify:dev": "npx netlify dev"
@@ -16,5 +17,8 @@
     "express": "^4.21.2",
     "jszip": "^3.10.1",
     "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.10"
   }
 }

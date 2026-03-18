@@ -21,12 +21,19 @@ http://localhost:3000
 npm run netlify:dev
 ```
 
+如果你想单独验证 Netlify 函数 bundle：
+
+```bash
+npm run build:functions
+```
+
 ## Netlify 部署
 
 这个项目已经包含 [netlify.toml](/Users/zhongziyun/Downloads/检查下架/final-sale/netlify.toml)：
 
 - 静态页面发布目录：`public`
-- Functions 目录：`netlify/functions`
+- Functions 源码目录：`netlify/functions`
+- Functions 构建产物目录：`netlify/functions-dist`
 - Node 版本：`20`
 
 推到 GitHub 后，直接在 Netlify 里导入仓库即可。
@@ -67,3 +74,4 @@ npm run netlify:dev
 - 处理逻辑跑在 Function 里
 - 不依赖本地磁盘持久化
 - 结果在内存里打包成 ZIP 后直接返回下载
+- 在部署前先把 Function 打成单文件 bundle，减少运行时找不到依赖的风险

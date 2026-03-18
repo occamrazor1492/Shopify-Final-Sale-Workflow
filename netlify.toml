@@ -1,9 +1,9 @@
 [build]
-  command = "echo 'Static site ready'"
+  command = "npm run build:functions"
   publish = "public"
 
 [build.environment]
   NODE_VERSION = "20"
 
 [functions]
-  directory = "netlify/functions"
+  directory = "netlify/functions-dist"

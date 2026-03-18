@@ -1,5 +1,6 @@
 .DS_Store
 .netlify/
+netlify/functions-dist/
 node_modules/
 generated/
 

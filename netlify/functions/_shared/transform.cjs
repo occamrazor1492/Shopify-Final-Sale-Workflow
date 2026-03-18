@@ -40,6 +40,17 @@ function normalizeQuantity(value) {
   return text;
 }
 
+function isVariantDataRow(row) {
+  return [
+    "Variant SKU",
+    "Variant Price",
+    "Variant Compare At Price",
+    "Option1 Value",
+    "Option2 Value",
+    "Option3 Value",
+  ].some((column) => normalizeText(row[column]).trim());
+}
+
 function arraysMatch(left, right) {
   return (
     left.length === right.length &&
@@ -158,6 +169,10 @@ function applySharedTransforms(rows, inventoryMap) {
 
   const transformedRows = rows.map((row) => {
     const nextRow = { ...row };
+    if (!isVariantDataRow(row)) {
+      return nextRow;
+    }
+
     nextRow["Variant Inventory Policy"] = "deny";
     nextRow["Status"] = "active";
 

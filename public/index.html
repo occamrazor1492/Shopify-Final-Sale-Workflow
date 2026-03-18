@@ -49,6 +49,7 @@
 
             <div class="workflow-card">
               <h2>处理规则</h2>
+              <p>四张表合并后，先按重复 SKU 去重，优先保留 <code>final-sale</code> 的整组商品</p>
               <p>先删掉 <code>Handle</code> 含 <code>final</code> 且原始 <code>Status=active</code> 的整组商品</p>
               <p><code>Variant Inventory Policy</code> 全改为 <code>deny</code></p>
               <p><code>Status</code> 全改为 <code>active</code></p>
@@ -81,6 +82,10 @@
           <div class="metric">
             <span>合并总行数</span>
             <strong id="merged-row-count">-</strong>
+          </div>
+          <div class="metric">
+            <span>按 SKU 去重删商品数</span>
+            <strong id="removed-duplicate-handle-count">-</strong>
           </div>
           <div class="metric">
             <span>预删 Final 商品数</span>

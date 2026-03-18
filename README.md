@@ -58,6 +58,7 @@ npm run build:functions
 ## 当前规则
 
 - 合并所有商品 CSV
+- 合并后先按重复 SKU 去重：如果重复商品同时存在普通 `Handle` 和 `final-sale Handle`，整组保留 `final-sale`，整组删除普通款
 - 先删掉 `Handle` 含 `final` 且原始 `Status=active` 的整组商品
 - `Variant Inventory Policy` 全部改为 `deny`
 - `Status` 全部改为 `active`

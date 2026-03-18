@@ -178,6 +178,109 @@ function applySharedTransforms(rows, inventoryMap) {
   };
 }
 
+function removeDuplicateProductsPreferFinal(rows) {
+  const skuToHandles = new Map();
+  const handleRowCounts = new Map();
+  const adjacency = new Map();
+
+  for (const row of rows) {
+    const handle = normalizeText(row.Handle).trim();
+    const sku = normalizeText(row["Variant SKU"]).trim();
+
+    if (!handle) {
+      continue;
+    }
+
+    handleRowCounts.set(handle, (handleRowCounts.get(handle) || 0) + 1);
+
+    if (!adjacency.has(handle)) {
+      adjacency.set(handle, new Set());
+    }
+
+    if (!sku) {
+      continue;
+    }
+
+    if (!skuToHandles.has(sku)) {
+      skuToHandles.set(sku, new Set());
+    }
+    skuToHandles.get(sku).add(handle);
+  }
+
+  for (const handles of skuToHandles.values()) {
+    if (handles.size < 2) {
+      continue;
+    }
+
+    const handleList = Array.from(handles);
+    for (const handle of handleList) {
+      const neighbors = adjacency.get(handle) || new Set();
+      for (const other of handleList) {
+        if (other !== handle) {
+          neighbors.add(other);
+        }
+      }
+      adjacency.set(handle, neighbors);
+    }
+  }
+
+  const visited = new Set();
+  const handlesToRemove = new Set();
+
+  for (const handle of adjacency.keys()) {
+    if (visited.has(handle)) {
+      continue;
+    }
+
+    const queue = [handle];
+    const component = [];
+    visited.add(handle);
+
+    while (queue.length) {
+      const current = queue.shift();
+      component.push(current);
+
+      for (const neighbor of adjacency.get(current) || []) {
+        if (!visited.has(neighbor)) {
+          visited.add(neighbor);
+          queue.push(neighbor);
+        }
+      }
+    }
+
+    const finalHandles = component.filter((item) =>
+      item.toLowerCase().includes("final")
+    );
+    const nonFinalHandles = component.filter(
+      (item) => !item.toLowerCase().includes("final")
+    );
+
+    if (finalHandles.length && nonFinalHandles.length) {
+      for (const nonFinalHandle of nonFinalHandles) {
+        handlesToRemove.add(nonFinalHandle);
+      }
+    }
+  }
+
+  const keptRows = [];
+  let removedRowCount = 0;
+
+  for (const row of rows) {
+    const handle = normalizeText(row.Handle).trim();
+    if (handle && handlesToRemove.has(handle)) {
+      removedRowCount += 1;
+      continue;
+    }
+    keptRows.push({ ...row });
+  }
+
+  return {
+    rows: keptRows,
+    removedHandleCount: handlesToRemove.size,
+    removedRowCount,
+  };
+}
+
 function removeOriginalFinalActiveHandles(rows) {
   const handlesToRemove = new Set();
 
@@ -352,8 +455,11 @@ async function processUploads({ productFiles, inventoryFile }) {
   const headers = validateProductHeaders(parsedProductFiles);
   const mergedRows = parsedProductFiles.flatMap((file) => file.rows);
 
+  const duplicateRemovalResult = removeDuplicateProductsPreferFinal(mergedRows);
   const { inventoryMap, sheetName } = await readInventoryMap(inventoryFile);
-  const filteredResult = removeOriginalFinalActiveHandles(mergedRows);
+  const filteredResult = removeOriginalFinalActiveHandles(
+    duplicateRemovalResult.rows
+  );
   const sharedResult = applySharedTransforms(filteredResult.rows, inventoryMap);
   const handleClassMap = buildHandleClassification(sharedResult.rows);
   const { finalRows, nonFinalRows } = splitRows(
@@ -378,6 +484,8 @@ async function processUploads({ productFiles, inventoryFile }) {
     stats: {
       productFileCount: productFiles.length,
       mergedRowCount: mergedRows.length,
+      removedDuplicateHandles: duplicateRemovalResult.removedHandleCount,
+      removedDuplicateRows: duplicateRemovalResult.removedRowCount,
       removedOriginalFinalActiveHandles: filteredResult.removedHandleCount,
       removedOriginalFinalActiveRows: filteredResult.removedRowCount,
       inventorySheetName: sheetName,

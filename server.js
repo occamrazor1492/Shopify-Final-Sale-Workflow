@@ -26,6 +26,9 @@ function setResultHeaders(res, stats, zipSize) {
     "Content-Length": String(zipSize),
     "X-Product-File-Count": String(stats.productFileCount),
     "X-Merged-Row-Count": String(stats.mergedRowCount),
+    "X-Removed-Final-Active-Handles": String(
+      stats.removedOriginalFinalActiveHandles
+    ),
     "X-Removed-Final-Active-Rows": String(
       stats.removedOriginalFinalActiveRows
     ),

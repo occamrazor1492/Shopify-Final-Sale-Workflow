@@ -58,7 +58,7 @@ npm run build:functions
 ## 当前规则
 
 - 合并所有商品 CSV
-- 先删掉 `Handle` 含 `final` 且原始 `Status=active` 的行
+- 先删掉 `Handle` 含 `final` 且原始 `Status=active` 的整组商品
 - `Variant Inventory Policy` 全部改为 `deny`
 - `Status` 全部改为 `active`
 - 用库存表回填 `Variant Inventory Qty`，没有则写 `0`

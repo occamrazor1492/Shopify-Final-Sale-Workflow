@@ -178,15 +178,24 @@ function applySharedTransforms(rows, inventoryMap) {
   };
 }
 
-function removeOriginalFinalActiveRows(rows) {
-  const keptRows = [];
-  let removedCount = 0;
+function removeOriginalFinalActiveHandles(rows) {
+  const handlesToRemove = new Set();
 
   for (const row of rows) {
-    const handle = normalizeText(row.Handle).trim().toLowerCase();
+    const handle = normalizeText(row.Handle).trim();
     const status = normalizeText(row.Status).trim().toLowerCase();
-    if (handle.includes("final") && status === "active") {
-      removedCount += 1;
+    if (handle && handle.toLowerCase().includes("final") && status === "active") {
+      handlesToRemove.add(handle);
+    }
+  }
+
+  const keptRows = [];
+  let removedRowCount = 0;
+
+  for (const row of rows) {
+    const handle = normalizeText(row.Handle).trim();
+    if (handle && handlesToRemove.has(handle)) {
+      removedRowCount += 1;
       continue;
     }
     keptRows.push({ ...row });
@@ -194,7 +203,8 @@ function removeOriginalFinalActiveRows(rows) {
 
   return {
     rows: keptRows,
-    removedCount,
+    removedHandleCount: handlesToRemove.size,
+    removedRowCount,
   };
 }
 
@@ -343,7 +353,7 @@ async function processUploads({ productFiles, inventoryFile }) {
   const mergedRows = parsedProductFiles.flatMap((file) => file.rows);
 
   const { inventoryMap, sheetName } = await readInventoryMap(inventoryFile);
-  const filteredResult = removeOriginalFinalActiveRows(mergedRows);
+  const filteredResult = removeOriginalFinalActiveHandles(mergedRows);
   const sharedResult = applySharedTransforms(filteredResult.rows, inventoryMap);
   const handleClassMap = buildHandleClassification(sharedResult.rows);
   const { finalRows, nonFinalRows } = splitRows(
@@ -368,7 +378,8 @@ async function processUploads({ productFiles, inventoryFile }) {
     stats: {
       productFileCount: productFiles.length,
       mergedRowCount: mergedRows.length,
-      removedOriginalFinalActiveRows: filteredResult.removedCount,
+      removedOriginalFinalActiveHandles: filteredResult.removedHandleCount,
+      removedOriginalFinalActiveRows: filteredResult.removedRowCount,
       inventorySheetName: sheetName,
       inventorySkuCount: inventoryMap.size,
       matchedInventoryRows: sharedResult.matchedInventoryRows,

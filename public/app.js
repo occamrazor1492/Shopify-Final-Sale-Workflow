@@ -8,7 +8,7 @@ const summaryGrid = document.querySelector("#summary-grid");
 
 const summaryTargets = {
   merged: document.querySelector("#merged-row-count"),
-  removed: document.querySelector("#removed-row-count"),
+  removedHandles: document.querySelector("#removed-handle-count"),
   matched: document.querySelector("#matched-row-count"),
   final: document.querySelector("#final-row-count"),
   converted: document.querySelector("#converted-row-count"),
@@ -32,17 +32,17 @@ function resetSummary() {
 
 function showSummaryFromHeaders(headers) {
   const merged = headers.get("x-merged-row-count");
-  const removed = headers.get("x-removed-final-active-rows");
+  const removedHandles = headers.get("x-removed-final-active-handles");
   const matched = headers.get("x-matched-inventory-rows");
   const finalRows = headers.get("x-final-row-count");
   const converted = headers.get("x-converted-row-count");
 
-  if (!merged || !removed || !matched || !finalRows || !converted) {
+  if (!merged || !removedHandles || !matched || !finalRows || !converted) {
     return;
   }
 
   summaryTargets.merged.textContent = merged;
-  summaryTargets.removed.textContent = removed;
+  summaryTargets.removedHandles.textContent = removedHandles;
   summaryTargets.matched.textContent = matched;
   summaryTargets.final.textContent = finalRows;
   summaryTargets.converted.textContent = converted;

@@ -1,9 +1,7 @@
-const fs = require("fs/promises");
-const path = require("path");
-
 const { parse } = require("csv-parse/sync");
 const { stringify } = require("csv-stringify/sync");
 const ExcelJS = require("exceljs");
+const JSZip = require("jszip");
 
 const REQUIRED_PRODUCT_COLUMNS = [
   "Handle",
@@ -18,6 +16,11 @@ const REQUIRED_PRODUCT_COLUMNS = [
 
 const INVENTORY_SKU_COLUMN = "库存SKU";
 const INVENTORY_QTY_COLUMN = "可用库存总量";
+
+const FINAL_FILE_NAME = "products_export_title_final.csv";
+const CONVERTED_FILE_NAME =
+  "products_export_title_nonfinal_added_final_sale.csv";
+const DEFAULT_ZIP_FILE_NAME = "shopify-final-sale-results.zip";
 
 function normalizeText(value) {
   return value == null ? "" : String(value);
@@ -313,12 +316,21 @@ function buildCsv(headers, rows) {
   });
 }
 
-async function writeCsv(filePath, headers, rows) {
-  const csvContent = buildCsv(headers, rows);
-  await fs.writeFile(filePath, csvContent, "utf8");
+async function buildResultsZip(outputFiles) {
+  const zip = new JSZip();
+
+  for (const outputFile of outputFiles) {
+    zip.file(outputFile.fileName, outputFile.content);
+  }
+
+  return zip.generateAsync({
+    type: "nodebuffer",
+    compression: "DEFLATE",
+    compressionOptions: { level: 6 },
+  });
 }
 
-async function processUploads({ productFiles, inventoryFile, outputDir }) {
+async function processUploads({ productFiles, inventoryFile }) {
   if (!productFiles?.length) {
     throw new Error("请至少上传一个商品 CSV。");
   }
@@ -334,24 +346,24 @@ async function processUploads({ productFiles, inventoryFile, outputDir }) {
   const filteredResult = removeOriginalFinalActiveRows(mergedRows);
   const sharedResult = applySharedTransforms(filteredResult.rows, inventoryMap);
   const handleClassMap = buildHandleClassification(sharedResult.rows);
-  const { finalRows, nonFinalRows } = splitRows(sharedResult.rows, handleClassMap);
-  const convertedNonFinalRows = convertNonFinalRows(nonFinalRows);
-
-  await fs.mkdir(outputDir, { recursive: true });
-
-  const finalFileName = "products_export_title_final.csv";
-  const convertedFileName = "products_export_title_nonfinal_added_final_sale.csv";
-  await writeCsv(path.join(outputDir, finalFileName), headers, finalRows);
-  await writeCsv(
-    path.join(outputDir, convertedFileName),
-    headers,
-    convertedNonFinalRows
+  const { finalRows, nonFinalRows } = splitRows(
+    sharedResult.rows,
+    handleClassMap
   );
+  const convertedNonFinalRows = convertNonFinalRows(nonFinalRows);
 
   return {
     outputFiles: [
-      { fileName: finalFileName, rowCount: finalRows.length },
-      { fileName: convertedFileName, rowCount: convertedNonFinalRows.length },
+      {
+        fileName: FINAL_FILE_NAME,
+        rowCount: finalRows.length,
+        content: buildCsv(headers, finalRows),
+      },
+      {
+        fileName: CONVERTED_FILE_NAME,
+        rowCount: convertedNonFinalRows.length,
+        content: buildCsv(headers, convertedNonFinalRows),
+      },
     ],
     stats: {
       productFileCount: productFiles.length,
@@ -367,5 +379,9 @@ async function processUploads({ productFiles, inventoryFile, outputDir }) {
 }
 
 module.exports = {
+  CONVERTED_FILE_NAME,
+  DEFAULT_ZIP_FILE_NAME,
+  FINAL_FILE_NAME,
+  buildResultsZip,
   processUploads,
 };

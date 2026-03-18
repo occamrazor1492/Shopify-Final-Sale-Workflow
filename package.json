@@ -2,17 +2,19 @@
   "name": "final-sale-webapp",
   "version": "1.0.0",
   "private": true,
-  "description": "Local web app for generating final-sale Shopify CSV outputs.",
+  "description": "Netlify-ready web app for generating final-sale Shopify CSV outputs.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "netlify:dev": "npx netlify dev"
   },
   "dependencies": {
     "csv-parse": "^5.5.6",
     "csv-stringify": "^6.5.2",
     "exceljs": "^4.4.0",
     "express": "^4.21.2",
+    "jszip": "^3.10.1",
     "multer": "^2.0.2"
   }
 }

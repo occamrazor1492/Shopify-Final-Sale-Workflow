@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Final Sale Web App</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="backdrop backdrop-one"></div>
+    <div class="backdrop backdrop-two"></div>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Shopify Final Sale Workflow</p>
+        <h1>上传文件，直接下载 Netlify 友好的结果 ZIP</h1>
+        <p class="lede">
+          这个版本专门按 Netlify 的运行方式改过：静态前端负责上传，函数在内存里处理 CSV 和库存表，
+          不写本地磁盘，完成后直接返回一个 ZIP，里面有两张最终结果表。
+        </p>
+      </section>
+
+      <section class="panel">
+        <form class="upload-form" id="upload-form" enctype="multipart/form-data">
+          <label class="field">
+            <span>商品 CSV（可多选）</span>
+            <input type="file" name="productCsvs" accept=".csv,text/csv" multiple required />
+            <small>支持任意多个 Shopify 商品导出 CSV，表头必须一致。</small>
+          </label>
+
+          <label class="field">
+            <span>库存 Excel</span>
+            <input
+              type="file"
+              name="inventoryFile"
+              accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              required
+            />
+            <small>需要包含 <code>库存SKU</code> 和 <code>可用库存总量</code> 两列。</small>
+          </label>
+
+          <div class="workflow">
+            <div class="workflow-card">
+              <h2>ZIP 内含文件</h2>
+              <p>1. <code>products_export_title_final.csv</code></p>
+              <p>2. <code>products_export_title_nonfinal_added_final_sale.csv</code></p>
+            </div>
+
+            <div class="workflow-card">
+              <h2>处理规则</h2>
+              <p>先删掉 <code>Handle</code> 含 <code>final</code> 且原始 <code>Status=active</code> 的行</p>
+              <p><code>Variant Inventory Policy</code> 全改为 <code>deny</code></p>
+              <p><code>Status</code> 全改为 <code>active</code></p>
+              <p>库存按 <code>库存SKU</code> 对 <code>Variant SKU</code> 回填，没有就写 <code>0</code></p>
+              <p>非 final 表自动补 <code>-final-sale</code>，并重算价格</p>
+            </div>
+          </div>
+
+          <div class="workflow workflow-single">
+            <div class="workflow-card">
+              <h2>Netlify 提示</h2>
+              <p>这个版本不依赖本地磁盘持久化，更适合 Functions。</p>
+              <p>如果以后上传文件明显变大，最好把总上传体积控制在几 MB 内。</p>
+            </div>
+          </div>
+
+          <button class="cta" id="submit-button" type="submit">生成并下载 ZIP</button>
+        </form>
+      </section>
+
+      <section class="panel status-panel" id="status-panel" hidden>
+        <div class="status-copy">
+          <p class="eyebrow" id="status-eyebrow">处理中</p>
+          <h2 id="status-title">正在处理上传文件</h2>
+          <p class="lede status-lede" id="status-message">
+            请稍等，浏览器会在处理完成后自动下载 ZIP。
+          </p>
+        </div>
+        <div class="summary-grid summary-grid-compact" id="summary-grid" hidden>
+          <div class="metric">
+            <span>合并总行数</span>
+            <strong id="merged-row-count">-</strong>
+          </div>
+          <div class="metric">
+            <span>预删 Final Active 行数</span>
+            <strong id="removed-row-count">-</strong>
+          </div>
+          <div class="metric">
+            <span>命中库存行数</span>
+            <strong id="matched-row-count">-</strong>
+          </div>
+          <div class="metric">
+            <span>Final 表行数</span>
+            <strong id="final-row-count">-</strong>
+          </div>
+          <div class="metric">
+            <span>转换表行数</span>
+            <strong id="converted-row-count">-</strong>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

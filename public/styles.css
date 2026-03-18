@@ -25,6 +25,10 @@ body {
     linear-gradient(145deg, #f4eadb 0%, #fbf6ec 42%, #efe2cd 100%);
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .backdrop {
   position: fixed;
   inset: auto;
@@ -153,6 +157,10 @@ code {
   gap: 16px;
 }
 
+.workflow-single {
+  grid-template-columns: 1fr;
+}
+
 .workflow-card,
 .metric,
 .download-card {
@@ -193,6 +201,13 @@ code {
   background: linear-gradient(135deg, var(--accent) 0%, #be4825 100%);
   box-shadow: 0 16px 30px rgba(190, 72, 37, 0.26);
   cursor: pointer;
+}
+
+.cta:disabled {
+  transform: none;
+  cursor: wait;
+  opacity: 0.72;
+  box-shadow: none;
 }
 
 .cta:hover,
@@ -254,6 +269,39 @@ code {
 
 .actions {
   padding: 0 24px 24px;
+}
+
+.status-panel {
+  display: grid;
+  gap: 18px;
+  margin-top: 22px;
+  padding: 24px;
+}
+
+.status-panel[data-state="loading"] {
+  border-color: rgba(214, 93, 56, 0.24);
+}
+
+.status-panel[data-state="success"] {
+  border-color: rgba(74, 135, 91, 0.24);
+}
+
+.status-panel[data-state="error"] {
+  border-color: rgba(165, 42, 42, 0.22);
+}
+
+.status-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.status-lede {
+  margin-top: 0;
+}
+
+.summary-grid-compact {
+  margin-top: 0;
+  padding: 0;
 }
 
 .secondary {

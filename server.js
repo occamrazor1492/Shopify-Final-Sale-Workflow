@@ -6,7 +6,7 @@ const {
   DEFAULT_ZIP_FILE_NAME,
   buildResultsZip,
   processUploads,
-} = require("./src/transform");
+} = require("./netlify/functions/_shared/transform.cjs");
 
 const app = express();
 const port = process.env.PORT || 3000;

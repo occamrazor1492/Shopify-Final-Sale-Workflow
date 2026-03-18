@@ -1,4 +1,4 @@
-import workflow from "../../src/transform.js";
+import workflow from "./_shared/transform.cjs";
 
 const { DEFAULT_ZIP_FILE_NAME, buildResultsZip, processUploads } = workflow;
 
